@@ -1,22 +1,27 @@
 {
   "name": "HTML5 Speedtest",
-  "version": "0.4",
-  "homeassistant":"0.91.3",
+  "version": "0.1",
   "slug": "html5_speedtest",
-  "description": "Self-hosted HTML5 Browser based network Speedtest!",
-  "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
+  "description": "Self-hosted Librespeed!",
+  "arch": [
+	"armhf",
+	"armv7",
+	"aarch64",
+	"amd64",
+	"i386"
+  ],
   "startup": "application",
-  "url": "https://github.com/adolfintel/speedtest/tree/docker",
-  "webui":"http://[HOST]:[PORT:80]/",
+  "url": "https://github.com/librespeed/speedtest/tree/master/docker",
+  "webui": "http://[HOST]:[PORT:80]/",
   "boot": "auto",
   "options": {},
   "schema": {},
   "ports": {
-    "80/tcp": 8081
+	"80/tcp": 8283
   },
-  "ingress":"true",
-  "ingress_port":"80",
-  "panel_icon":"mdi:speedometer",
+  "ingress": "true",
+  "ingress_port": 80,
+  "panel_icon": "mdi:speedometer",
   "panel_title": "Speedtest",
-  "panel_admin":"false"
+  "panel_admin": "false"
 }

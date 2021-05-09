@@ -2,7 +2,7 @@
 
 name: CI
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
@@ -27,3 +27,10 @@ jobs:
 
       - name: Home Assistant builder
         uses: home-assistant/builder@2021.04.2
+        with:
+          args: |
+            --test \
+            --all \
+            --target speedtest \
+            --image hassio-speedtest \
+            --docker-hub lukeshard

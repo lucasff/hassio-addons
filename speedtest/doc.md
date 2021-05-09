@@ -1,11 +1,11 @@
-# HTML5 Speedtest
+# LibreSpeed
 
 > by Federico Dossena  
-> Version 5.0
-> [https://github.com/adolfintel/speedtest/](https://github.com/adolfintel/speedtest/)
+> Version 5.2.4
+> [https://github.com/librespeed/speedtest/](https://github.com/librespeed/speedtest/)
 
 ## Introduction
-HTML5 Speedtest is a Free and Open Source speedtest that you can host on your server(s), and users can run in their browser.
+LibreSpeed is a Free and Open Source speedtest that you can host on your server(s), and users can run in their browser.
 
 __Features:__
 * Download test
@@ -44,7 +44,7 @@ Server side, you'll need:
 * PHP 5.4 or newer, a 64-bit version is strongly recommended
 * OpenSSL and its PHP module (this is usually installed automatically by most distros)
 * If you want to store test results (telemetry), one of the following:
-    - MySQL/MariaDB and the mysqli PHP module
+    - MySQL/MariaDB and its PHP PDO module
     - PostgreSQL and its PHP PDO module
     - SQLite 3 and its PHP PDO module
 * If you want to enable results sharing:
@@ -101,6 +101,8 @@ To enable ID obfuscation, edit `results/telemetry_settings.php` and set `$enable
 
 __Important:__ ID obfuscation currently only works on 64-bit PHP!
 
+While you're editing `results/telemetry_settings.php`, you might want to set `$redact_ip_addresses` to `true`, this way, all IP addresses will be removed from the telemetry for better privacy. This is disabled by default.
+
 ##### Seeing the results
 A basic front-end for visualizing and searching tests by ID is available in `results/stats.php`.
 
@@ -108,11 +110,11 @@ A login is required to access the interface. __Important__: change the default p
 
 #### The end
 Now that the test is installed, rename one of the examples to `index.html` and delete the other examples.  
-The best starting point for most people is `example-singleServer-pretty.html`. If you want to use telemetry and results sharing, use `example-singleServer-full.html` instead.
+The best starting point for most people is `example-singleServer-gauges.html`. If you want to use telemetry and results sharing, use `example-singleServer-full.html` instead.
 
 If you're not using telemetry and results sharing, you can delete the `results` folder too.
 
-Details about the examples and how to make custom UIs will be discussed later.
+Details about the examples and how to make custom UIs will be discussed later. If you don't want to make a custom UI, feel free to modify the example and replace "LibreSpeed Example" with the name of your test.
 
 #### Privacy
 Telemetry contains personal information (according to GDPR defintion), therefore it is important to treat this data respectfully of national and international laws, especially if you plan to offer the service in the European Union.
@@ -135,7 +137,7 @@ Requirements:
 * Apache 2 (nginx and IIS also supported). A fast connection is not mandatory, but is still recommended
 * PHP 5.4 or newer
 * If you want to store test results (telemetry), one of the following:
-    - MySQL/MariaDB and the mysqli PHP module
+    - MySQL/MariaDB and its PHP PDO module
     - PostgreSQL and its PHP PDO module
     - SQLite 3 and its PHP PDO module
 * If you want to enable results sharing:
@@ -154,32 +156,32 @@ Edit `index.html`, you will see a list of servers:
 ```js
 var SPEEDTEST_SERVERS=[
 	{
-		name:"Speedtest Demo Server 1", //user friendly name for the server
-		server:"//mpotdemo.fdossena.com/", //URL to the server. // at the beginning will be replaced with http:// or https:// automatically
-		dlURL:"garbage.php",  //path to download test on this server (garbage.php or replacement)
-		ulURL:"empty.php",  //path to upload test on this server (empty.php or replacement)
-		pingURL:"empty.php",  //path to ping/jitter test on this server (empty.php or replacement)
-		getIpURL:"getIP.php"  //path to getIP on this server (getIP.php or replacement)
+		"name":"Speedtest Demo Server 1", //user friendly name for the server
+		"server":"//mpotdemo.fdossena.com/", //URL to the server. // at the beginning will be replaced with http:// or https:// automatically
+		"dlURL":"garbage.php",  //path to download test on this server (garbage.php or replacement)
+		"ulURL":"empty.php",  //path to upload test on this server (empty.php or replacement)
+		"pingURL":"empty.php",  //path to ping/jitter test on this server (empty.php or replacement)
+		"getIpURL":"getIP.php"  //path to getIP on this server (getIP.php or replacement)
 	},
 	{
-		name:"Speedtest Demo Server 2",
-		server:"//mpotdemo2.fdossena.com/",
-		dlURL:"garbage.php",
-		ulURL:"empty.php",
-		pingURL:"empty.php",
-		getIpURL:"getIP.php"
+		"name":"Speedtest Demo Server 2",
+		"server":"//mpotdemo2.fdossena.com/",
+		"dlURL":"garbage.php",
+		"ulURL":"empty.php",
+		"pingURL":"empty.php",
+		"getIpURL":"getIP.php"
 	}
 	//add other servers here, comma separated
 ];
 ```
 
 Replace the demo servers with your test points. Each server in the list is an object containing:
-* `name`: user friendly name for this test point
-* `server`: URL to the server. If your server only supports HTTP or HTTPS, put http:// or https:// at the beginning, respectively; if it supports both, put // at the beginning and it will be replaced automatically
-* `dlURL`: path to the download test on this server (garbage.php or replacement)
-* `ulURL`: path to the upload test on this server (empty.php or replacement)
-* `pingURL`: path to the ping test on this server (empty.php or replacement)
-* `getIpURL`: path to getIP on this server (getIP.php or replacement)
+* `"name"`: user friendly name for this test point
+* `"server"`: URL to the server. If your server only supports HTTP or HTTPS, put http:// or https:// at the beginning, respectively; if it supports both, put // at the beginning and it will be replaced automatically
+* `"dlURL"`: path to the download test on this server (garbage.php or replacement)
+* `"ulURL"`: path to the upload test on this server (empty.php or replacement)
+* `"pingURL"`: path to the ping test on this server (empty.php or replacement)
+* `"getIpURL"`: path to getIP on this server (getIP.php or replacement)
 
 None of these parameters can be omitted.
 
@@ -188,6 +190,23 @@ __Important__: You can't mix HTTP with HTTPS; if the frontend uses HTTP, you won
 __Important__: For HTTPS, all your servers must have valid certificates or the browser will refuse to connect
 
 __Important__: Don't use my demo servers, they're slow!
+
+If your list of servers changes often, you might not want to have it hardcoded in the HTML file. LibreSpeed can load the server list from a JSON file. To do this, edit `index.html` and replace the list of servers with this:
+```js
+var SPEEDTEST_SERVERS="your URL here";
+```
+
+The URL doesn't need to be complete, it can just point to a file in the current directory. The URL should point to a JSON file with the same format used above:
+```js
+[
+    {
+        "name":...
+    },
+    ...
+]
+```
+
+__Important:__ The same origin policy applies to which URLs you can and cannot load with this method. If possible, it's best to just point it to a file on the current server.
 
 ##### Telemetry and results sharing
 Telemetry is stored on the frontend server. The setup procedure is the same as the single server version.
@@ -324,7 +343,7 @@ __Main parameters:__
     * Default: `getIP.php`
     * __Important:__ path is relative to js file
 * __url_telemetry__: path to telemetry.php or replacement
-    * Default: `telemetry/telemetry.php`
+    * Default: `results/telemetry.php`
     * __Important:__ path is relative to js file
 	* __Note:__ you can ignore this parameter if you're not using the telemetry
 * __telemetry_level__: The type of telemetry to use. See the telemetry section for more info about this
@@ -365,7 +384,6 @@ __Advanced parameters:__ (Seriously, don't change these unless you know what you
 * __xhr_ulMultistream__: how many streams should be opened for the upload test
     * Default: `3`
     * Recommended: `>=1`
-    * Default override: 1 on Firefox if enable_quirks is true
 * __xhr_ul_blob_megabytes__: size in megabytes of the blobs sent during the upload test
 	* Default: `20`
 	* Default override: 4 on Chromium-based mobile browsers (limitation introduced around version 65). This will be forced
@@ -533,6 +551,11 @@ Note that this will add `mpot`:`true` to the parameters sent to the speedtest wo
 
 ##### addTestPoints(list)
 Same as addTestPoint, but you can pass an array of servers
+
+##### loadServerList(url,result)
+Loads a list of servers from a JSON file pointed by the `url`.
+
+The process is asynchronous and the `result` function will be called when it's done. If the request succeeded, an array containing the list of loaded servers will be passed to the function, otherwise `null` will be passed.
 
 ##### getSelectedServer()
 Returns the selected server (multiple points of test)

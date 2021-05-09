@@ -1,7 +1,7 @@
 /*
-	HTML5 Speedtest - Worker
+	LibreSpeed - Worker
 	by Federico Dossena
-	https://github.com/adolfintel/speedtest/
+	https://github.com/librespeed/speedtest/
 	GNU LGPLv3 License
 */
 
@@ -64,7 +64,8 @@ var settings = {
 	useMebibits: false, //if set to true, speed will be reported in mebibits/s instead of megabits/s
 	telemetry_level: 0, // 0=disabled, 1=basic (results only), 2=full (results and timing) 3=debug (results+log)
 	url_telemetry: "results/telemetry.php", // path to the script that adds telemetry data to the database
-	telemetry_extra: "" //extra data that can be passed to the telemetry through the settings
+	telemetry_extra: "", //extra data that can be passed to the telemetry through the settings
+    forceIE11Workaround: false //when set to true, it will foce the IE11 upload test on all browsers. Debug only
 };
 
 var xhr = null; // array of currently active xhr requests
@@ -122,15 +123,11 @@ this.addEventListener("message", function(e) {
 				if (typeof settings[key] !== "undefined") settings[key] = s[key];
 				else twarn("Unknown setting ignored: " + key);
 			}
+			var ua = navigator.userAgent;
 			// quirks for specific browsers. apply only if not overridden. more may be added in future releases
 			if (settings.enable_quirks || (typeof s.enable_quirks !== "undefined" && s.enable_quirks)) {
-				var ua = navigator.userAgent;
 				if (/Firefox.(\d+\.\d+)/i.test(ua)) {
-					if (typeof s.xhr_ulMultistream === "undefined") {
-						// ff more precise with 1 upload stream
-						settings.xhr_ulMultistream = 1;
-					}
-					if (typeof s.xhr_ulMultistream === "undefined") {
+					if (typeof s.ping_allowPerformanceApi === "undefined") {
 						// ff performance API sucks
 						settings.ping_allowPerformanceApi = false;
 					}
@@ -407,8 +404,8 @@ function dlTest(done) {
 				var speed = totLoaded / (t / 1000.0);
 				if (settings.time_auto) {
 					//decide how much to shorten the test. Every 200ms, the test is shortened by the bonusT calculated here
-					var bonus = (6.4 * speed) / 100000;
-					bonusT += bonus > 800 ? 800 : bonus;
+					var bonus = (5.0 * speed) / 100000;
+					bonusT += bonus > 400 ? 400 : bonus;
 				}
 				//update status
 				dlStatus = ((speed * 8 * settings.overheadCompensationFactor) / (settings.useMebibits ? 1048576 : 1000000)).toFixed(2); // speed is multiplied by 8 to go from bytes to bits, overhead compensation is applied, then everything is divided by 1048576 or 1000000 to go to megabits/mebibits
@@ -527,7 +524,7 @@ function ulTest(done) {
 						xhr[i].send(req);
 					}
 				}.bind(this),
-				1
+				delay
 			);
 		}.bind(this);
 		// open streams
@@ -555,8 +552,8 @@ function ulTest(done) {
 					var speed = totLoaded / (t / 1000.0);
 					if (settings.time_auto) {
 						//decide how much to shorten the test. Every 200ms, the test is shortened by the bonusT calculated here
-						var bonus = (6.4 * speed) / 100000;
-						bonusT += bonus > 800 ? 800 : bonus;
+						var bonus = (5.0 * speed) / 100000;
+						bonusT += bonus > 400 ? 400 : bonus;
 					}
 					//update status
 					ulStatus = ((speed * 8 * settings.overheadCompensationFactor) / (settings.useMebibits ? 1048576 : 1000000)).toFixed(2); // speed is multiplied by 8 to go from bytes to bits, overhead compensation is applied, then everything is divided by 1048576 or 1000000 to go to megabits/mebibits
@@ -631,7 +628,7 @@ function pingTest(done) {
 				var instjitter = Math.abs(instspd - prevInstspd);
 				if (i === 1) ping = instspd;
 				/* first ping, can't tell jitter yet*/ else {
-					ping = instspd < ping ? instspd : ping * 0.8 + instspd * 0.2; // update ping, weighted average. if the instant ping is lower than the current average, it is set to that value instead of averaging
+					if (instspd < ping) ping = instspd; // update ping, if the instant ping is lower
 					if (i === 2) jitter = instjitter;
 					//discard the first jitter measurement because it might be much higher than it should be
 					else jitter = instjitter > jitter ? jitter * 0.3 + instjitter * 0.7 : jitter * 0.8 + instjitter * 0.2; // update jitter, weighted average. spikes in ping values are given more weight.
